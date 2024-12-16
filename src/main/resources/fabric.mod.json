@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "forceopbook",
+  "version": "${version}",
+  "name": "ForceOPBook",
+  "description": "",
+  "authors": [],
+  "contact": {
+    "repo": "https://github.com/etianl/ForceOPBook"
+  },
+  "license": "All-Rights-Reserved",
+  "environment": "client",
+  "entrypoints": {},
+  "mixins": [
+    "trouserforceopbook.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "minecraft": "${minecraft_version}"
+  }
+}

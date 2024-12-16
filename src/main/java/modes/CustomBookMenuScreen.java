@@ -1,6 +1,5 @@
 package modes;
 
-import bmodes.bModes;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
@@ -34,16 +33,12 @@ public class CustomBookMenuScreen extends Screen {
     @Unique
     private bookModes currentMode = ForceOP;
     @Unique
-    private bModes bookMode = bModes.WritableBook;
-    @Unique
     private TextFieldWidget command1Field;
     private TextFieldWidget AuthorField;
     private TextFieldWidget TitleField;
     private TextFieldWidget TextField;
     @Unique
     private CyclingButtonWidget<bookModes> modeButton;
-    @Unique
-    private CyclingButtonWidget<bModes> bmodeButton;
     @Override
     protected void init() {
         super.init();
@@ -55,11 +50,6 @@ public class CustomBookMenuScreen extends Screen {
                 .initially(currentMode)
                 .build(230, startY + spacing, 170, 18, Text.literal("Cmd Mode"));
         addDrawableChild(modeButton);
-        bmodeButton = CyclingButtonWidget.< bModes>builder(bmode -> Text.literal(bmode.name()))
-                .values(bModes.values())
-                .initially(bookMode)
-                .build(230, startY + spacing*2, 170, 18, Text.literal("Book Mode"));
-        addDrawableChild(bmodeButton);
 
         addDrawableChild(new ButtonWidget.Builder(Text.literal("------>Create OP Book<------"), button -> createOpSign())
                 .position(230, startY + 185)
@@ -191,10 +181,8 @@ public class CustomBookMenuScreen extends Screen {
         }
 
         bookModes selectedMode = modeButton.getValue();
-        bModes selectedbMode = bmodeButton.getValue();
 
-        ItemStack stack = new ItemStack(Items.WRITABLE_BOOK);
-        if (selectedbMode == bModes.WrittenBook)stack = new ItemStack(Items.WRITTEN_BOOK);
+        ItemStack stack = new ItemStack(Items.WRITTEN_BOOK);
         String commandValue1 = command1Value;
         String authorValue = AuthorValue;
         String titleValue = TitleValue;

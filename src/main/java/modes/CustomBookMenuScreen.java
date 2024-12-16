@@ -1,24 +1,17 @@
 package modes;
 
-import bmodes.bModes;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.CyclingButtonWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.component.ComponentChanges;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.WrittenBookContentComponent;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.text.ClickEvent;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.RawFilteredPair;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtList;
+import net.minecraft.nbt.NbtString;
 import net.minecraft.text.Text;
 import org.spongepowered.asm.mixin.Unique;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static modes.bookModes.ForceOP;
 
@@ -34,16 +27,12 @@ public class CustomBookMenuScreen extends Screen {
     @Unique
     private bookModes currentMode = ForceOP;
     @Unique
-    private bModes bookMode = bModes.WritableBook;
-    @Unique
     private TextFieldWidget command1Field;
     private TextFieldWidget AuthorField;
     private TextFieldWidget TitleField;
     private TextFieldWidget TextField;
     @Unique
     private CyclingButtonWidget<bookModes> modeButton;
-    @Unique
-    private CyclingButtonWidget<bModes> bmodeButton;
     @Override
     protected void init() {
         super.init();
@@ -55,11 +44,6 @@ public class CustomBookMenuScreen extends Screen {
                 .initially(currentMode)
                 .build(230, startY + spacing, 170, 18, Text.literal("Cmd Mode"));
         addDrawableChild(modeButton);
-        bmodeButton = CyclingButtonWidget.< bModes>builder(bmode -> Text.literal(bmode.name()))
-                .values(bModes.values())
-                .initially(bookMode)
-                .build(230, startY + spacing*2, 170, 18, Text.literal("Book Mode"));
-        addDrawableChild(bmodeButton);
 
         addDrawableChild(new ButtonWidget.Builder(Text.literal("------>Create OP Book<------"), button -> createOpSign())
                 .position(230, startY + 185)
@@ -191,35 +175,30 @@ public class CustomBookMenuScreen extends Screen {
         }
 
         bookModes selectedMode = modeButton.getValue();
-        bModes selectedbMode = bmodeButton.getValue();
 
-        ItemStack stack = new ItemStack(Items.WRITABLE_BOOK);
-        if (selectedbMode == bModes.WrittenBook)stack = new ItemStack(Items.WRITTEN_BOOK);
+        ItemStack stack = new ItemStack(Items.WRITTEN_BOOK);
         String commandValue1 = command1Value;
         String authorValue = AuthorValue;
         String titleValue = TitleValue;
         String textValue = TextValue;
 
-        RawFilteredPair<String> Title = RawFilteredPair.of(titleValue);
-        List<RawFilteredPair<Text>> pages = new ArrayList<>();
+        NbtCompound nbt = new NbtCompound();
+
+        nbt.putString("title", titleValue);
+        nbt.putString("author", authorValue);
+        NbtList pages = new NbtList();
         if (selectedMode == ForceOP){
-            MutableText pageText = Text.literal(textValue+"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             ")
-                    .styled(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/op "+mc.player.getName().getLiteralString())));
-            pages.add(RawFilteredPair.of(pageText));
+            String pageContent = "{\"text\":\""+textValue+"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             "
+                    +"\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/op "+mc.player.getName().getLiteralString()+"\"}}";
+            pages.add(NbtString.of(pageContent));
         } else {
-            MutableText pageText = Text.literal(textValue+"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             ")
-                    .styled(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, commandValue1)));
-            pages.add(RawFilteredPair.of(pageText));
+            String pageContent = "{\"text\":\""+textValue+"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             "
+                    +"\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\""+commandValue1+"\"}}";
+            pages.add(NbtString.of(pageContent));
         }
-        WrittenBookContentComponent bookContentComponent = new WrittenBookContentComponent(
-                Title, authorValue, 0, pages, true
-        );
+        nbt.put("pages", pages);
 
-        var changes = ComponentChanges.builder()
-                .add(DataComponentTypes.WRITTEN_BOOK_CONTENT, bookContentComponent)
-                .build();
-
-        stack.applyChanges(changes);
+        stack.setNbt(nbt);
 
         assert mc.interactionManager != null;
         mc.interactionManager.clickCreativeStack(stack, 36 + mc.player.getInventory().selectedSlot);
